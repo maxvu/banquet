@@ -1,11 +1,13 @@
 
-        '||                                                   .   
-         || ...   ....   .. ...     ... .  ... ...    ....  .||.  
-         ||'  || '' .||   ||  ||  .'   ||   ||  ||  .|...||  ||   
-         ||    | .|' ||   ||  ||  |.   ||   ||  ||  ||       ||   
-         '|...'  '|..'|' .||. ||. '|..'||   '|..'|.  '|...'  '|.' 
-                                       ||                         
-                                      ''''                        
+
+
+          '||                                                   .   
+           || ...   ....   .. ...     ... .  ... ...    ....  .||.  
+           ||'  || '' .||   ||  ||  .'   ||   ||  ||  .|...||  ||   
+           ||    | .|' ||   ||  ||  |.   ||   ||  ||  ||       ||   
+           '|...'  '|..'|' .||. ||. '|..'||   '|..'|.  '|...'  '|.' 
+                                         ||                         
+                                        ''''                        
                                       
     FILES
     
@@ -32,34 +34,68 @@
                 └── Main.cpp                4e990c35fd3d427373663d9efed1c64f
     
     CHALLENGE
-        
-        Recover the plaintext message encrypted in GOAL.PNG.ENC.
+    
+        Given a block cipher with a significant cryptographic weakness
+        introduced and an encrypted message, identify the weakness and exploit 
+        it to recover the original message.
         
     DETAILS
     
-        BANQUET is a block cipher that operates on 48-bit blocks using a 48-bit
-        key. Provided is a C/C++ implementation of it operating in Cipher Block 
-        Chaining (CBC) mode. The included MAKEFILE will generate three programs:
-        BQ-ENCRYPT, BQ-DECRYPT and BQ-SOLUTION. BQ-ENCRYPT will perform 
-        encryption using BANQUET and BQ-DECRYPT will perform the inverse.
-        BQ-SOLUTION is provided as a convenience.
+        The encrypted message is contained in GOAL.PNG.ENC. The original message
+        is a PNG image with a set of English-language codewords that can 
+        certify completion.
+    
+        BANQUET is a block cipher that operates on 48-bit blocks with a 48-bit 
+        key. The source of an C++ library implementing it can be found in LIB/,
+        along with other tooling needed to build BIN/BQ-ENCRYPT and 
+        BIN/BQ-DECRYPT, command-line programs that will (respectively) encrypt 
+        and decrypt arbitrary files.
+        
+        In these programs, the cipher will operate in Cipher Block Chaining 
+        (CBC) mode and will take two arguments: the name of an input file to 
+        read from and the name of an output file to write to. The governing key 
+        will be accepted via standard input.
+        
+        BQ-SOLUTION is a scaffold for a tentative solution and is provided as a
+        convenience.
+        
+        All three programs can be built using the `make` command:
+        
+            make clean && make
+            
+        An example of BQ-ENCRYPT being built and run:
+        
+            $ make clean
+
+                rm -f bin/*
+                
+            $ make
+            
+                g++ -Wall -std=c++11  src/encrypt/Main.cpp -o bin/bq-encrypt
+                g++ -Wall -std=c++11  src/decrypt/Main.cpp -o bin/bq-decrypt
+                g++ -Wall -std=c++11  src/solution/Main.cpp -o bin/bq-solution
+
+            $ bin/bq-encrypt data/mymsg data/mymsg.enc < data/mykey
+
+                   key:
+              key hash: 10 81 D2 FB 75 D7
+                    iv: DF 7B 60 7F FA 3D
+               padding: 0
+
+              Wrote 40894471 bytes to data/mymsg.enc
         
         A file encrypted with BQ-ENCRYPT has the following structure:
         
-        +------+-+------+------+------
-        |  IV  |M|  C0  |  C1  | ...
-        +------+-+------+------+------
+            +------+-+------+------+------     +------+
+            |  IV  |M|  C0  |  C1  | ...       |    Cn|
+            +------+-+------+------+------     +------+
         
-        ...where IV is a randomly-generated initialization vector, M is a single
-        padding marker byte (whose value is in 0..5), C0 is the first encrypted 
-        block, C1 is the second and so on.
-        
-        Both BQ-ENCRYPT and BQ-DECRYPT accept as their arguments, first, the 
-        name of the input file to read from and, second, the name of the output
-        file to write to. Both accept a string key from standard input.
-        
-        GOAL.PNG.ENC is a PNG image that contains the English-language code 
-        needed to certify completion.
+        ...where IV is a randomly-generated initialization vector of size six 
+        bytes, M is a single padding marker byte whose value is in 0..5, C0 is 
+        the first encrypted block (six bytes), C1 is the second (six bytes) 
+        and so on until Cn, the last block. All valid output should be greater
+        than 5 bytes in size and should have a total file size congruent to one
+        over modulo six.
         
     NOTES
     
